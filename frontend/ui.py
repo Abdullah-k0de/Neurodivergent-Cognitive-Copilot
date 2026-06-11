@@ -48,22 +48,34 @@ in_tangent = st.session_state.backend_state.get("in_tangent", False)
 
 if in_tangent:
     st.write("---")
-    col1, col2 = st.columns(2)
-    with col1:
+    tangent_depth = st.session_state.backend_state.get("tangent_message_count", 0)
+    
+    if tangent_depth >= 3:
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(f"↩️ Recover Goal: {st.session_state.backend_state['active_primary_goal']}"):
+                with st.spinner("Processing path re-entry synthesis..."):
+                    rec_res = requests.post(f"{URL}/recover-root")
+                    if rec_res.status_code == 200:
+                        data = rec_res.json()
+                        st.session_state.backend_state = data["state"]
+                        st.session_state.chat_history.append({"role": "assistant", "content": data["response"]})
+                        st.rerun()
+        with col2:
+            if st.button("⭐ Promote to Main Goal"):
+                with st.spinner("Promoting tangent to main goal..."):
+                    prom_res = requests.post(f"{URL}/promote-goal")
+                    if prom_res.status_code == 200:
+                        data = prom_res.json()
+                        st.session_state.backend_state = data["state"]
+                        st.session_state.chat_history.append({"role": "assistant", "content": data["response"]})
+                        st.rerun()
+    else:
         if st.button(f"↩️ Recover Goal: {st.session_state.backend_state['active_primary_goal']}"):
             with st.spinner("Processing path re-entry synthesis..."):
                 rec_res = requests.post(f"{URL}/recover-root")
                 if rec_res.status_code == 200:
                     data = rec_res.json()
-                    st.session_state.backend_state = data["state"]
-                    st.session_state.chat_history.append({"role": "assistant", "content": data["response"]})
-                    st.rerun()
-    with col2:
-        if st.button("⭐ Promote to Main Goal"):
-            with st.spinner("Promoting tangent to main goal..."):
-                prom_res = requests.post(f"{URL}/promote-goal")
-                if prom_res.status_code == 200:
-                    data = prom_res.json()
                     st.session_state.backend_state = data["state"]
                     st.session_state.chat_history.append({"role": "assistant", "content": data["response"]})
                     st.rerun()

@@ -21,6 +21,7 @@ class SessionState(BaseModel):
     current_node_id: Optional[str] = None
     re_entry_primed: bool = False
     in_tangent: bool = False
+    tangent_message_count: int = 0
 
 class MemoryGraphManager:
     def __init__(self):

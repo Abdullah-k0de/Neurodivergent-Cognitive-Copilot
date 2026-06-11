@@ -82,11 +82,14 @@ def handle_chat_routing(client: genai.Client, memory: MemoryGraphManager, state:
     if is_sub_task:
         assigned_root = state.current_root_id
         state.in_tangent = False
+        state.tangent_message_count = 0
     else:
         if parent_node.root_id.startswith("TANGENT_"):
             assigned_root = parent_node.root_id
+            state.tangent_message_count += 1
         else:
             assigned_root = "TANGENT_" + str(uuid4())[:8]
+            state.tangent_message_count = 1
         state.in_tangent = True
         
     user_node_id = memory.add_node("user", user_input, state.current_node_id, assigned_root, next_depth)
@@ -164,6 +167,7 @@ def handle_root_recovery(client: genai.Client, memory: MemoryGraphManager, state
     state.current_node_id = new_node_id
     state.cognitive_state = "flow"
     state.in_tangent = False
+    state.tangent_message_count = 0
     
     return ai_output
 
@@ -195,6 +199,7 @@ def handle_goal_promotion(client: genai.Client, memory: MemoryGraphManager, stat
     state.active_primary_goal = new_goal
     state.current_root_id = tangent_root_id
     state.in_tangent = False
+    state.tangent_message_count = 0
     
     ai_output = f"⭐ **Goal Promoted!**\nOur new primary focus is now: *{new_goal}*"
     new_node_id = memory.add_node("assistant", ai_output, state.current_node_id, tangent_root_id, current_node.depth + 1)
